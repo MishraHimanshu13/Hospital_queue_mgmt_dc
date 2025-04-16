@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmacy Portal - Hospital Queue Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <header class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <div class="w-10 h-10 rounded-full bg-yellow-600 flex items-center justify-center text-white font-bold">
+                        P
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg">Pharmacy Portal</h1>
+                        <p class="text-sm text-gray-500">Hospital Queue Management System</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-sm text-gray-600 hover:text-gray-900">Home</a>
+                    <button id="logoutButton" class="px-3 py-1 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-100">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container mx-auto px-4 py-6">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="p-6">
+                <h2 class="text-lg font-medium mb-2">Pharmacy Queue</h2>
+                <p class="text-gray-600 mb-4">Patients waiting for medicine dispensing</p>
+                
+                <div id="noQueuePatients" class="text-center py-6 text-gray-500 hidden">
+                    No patients currently waiting
+                </div>
+                
+                <div id="queuePatientsTable" class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Queue Position</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prescription</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="queuePatientsBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Queue patients will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Prescription Modal -->
+    <div id="prescriptionModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg max-w-md w-full">
+            <div class="p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Prescription Details</h3>
+                <p id="prescriptionDetails" class="text-sm bg-gray-100 p-3 rounded mb-4"></p>
+                
+                <div class="flex justify-end">
+                    <button id="closePrescriptionButton" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg max-w-md w-full">
+            <div class="p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Confirm Checkout</h3>
+                <p class="text-sm text-gray-500 mb-4">
+                    This will complete the pharmacy process and check out the patient.
+                </p>
+                
+                <div id="confirmPatientDetails" class="py-4 space-y-4">
+                    <div>
+                        <h4 class="font-medium mb-1">Patient:</h4>
+                        <p id="confirmPatientName"></p>
+                    </div>
+                    <div>
+                        <h4 class="font-medium mb-1">Prescription:</h4>
+                        <p id="confirmPrescription" class="text-sm bg-gray-100 p-3 rounded"></p>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-2 mt-4">
+                    <button id="cancelConfirmButton" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                        Cancel
+                    </button>
+                    <button id="confirmButton" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                        Confirm Checkout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const prescriptionModal = document.getElementById('prescriptionModal');
+            const prescriptionDetails = document.getElementById('prescriptionDetails');
+            const closePrescriptionButton = document.getElementById('closePrescriptionButton');
+            const confirmationModal = document.getElementById('confirmationModal');
+            const confirmPatientName = document.getElementById('confirmPatientName');
+            const confirmPrescription = document.getElementById('confirmPrescription');
+            const cancelConfirmButton = document.getElementById('cancelConfirmButton');
+            const confirmButton = document.getElementById('confirmButton');
+            const logoutButton = document.getElementById('logoutButton');
+            
+            let selectedPatient = null;
+            let eventSource = null;
+            
+            // Load queue
+            loadQueue();
+            setupQueueSSE();
+            
+            // Close prescription modal
+            closePrescriptionButton.addEventListener('click', function() {
+                prescriptionModal.classList.add('hidden');
+            });
+            
+            // Cancel confirm button
+            cancelConfirmButton.addEventListener('click', function() {
+                confirmationModal.classList.add('hidden');
+            });
+            
+            // Confirm button
+            confirmButton.addEventListener('click', function() {
+                if (!selectedPatient) return;
+                
+                // Disable button and show loading state
+                confirmButton.disabled = true;
+                confirmButton.textContent = 'Processing...';
+                
+                // Send complete pharmacy request
+                fetch('/api/pharmacy/complete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        patientId: selectedPatient.id
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to complete checkout');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Hide modal
+                        confirmationModal.classList.add('hidden');
+                        
+                        // Reset selected patient
+                        selectedPatient = null;
+                        
+                        // Show success message
+                        alert('Patient checked out successfully.');
+                    } else {
+                        throw new Error(data.error || 'Failed to complete checkout');
+                    }
+                })
+                .catch(error => {
+                    alert(error.message || 'An error occurred');
+                })
+                .finally(() => {
+                    confirmButton.disabled = false;
+                    confirmButton.textContent = 'Confirm Checkout';
+                });
+            });
+            
+            // Logout button
+            logoutButton.addEventListener('click', function() {
+                fetch('/logout')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.href = '/';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Logout failed:', error);
+                    });
+            });
+            
+            function loadQueue() {
+                fetch('/api/pharmacy/queue')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to load queue');
+                        }
+                        return response.json();
+                    })
+                    .then(patients => {
+                        updateQueueTable(patients);
+                    })
+                    .catch(error => {
+                        console.error('Error loading queue:', error);
+                    });
+            }
+            
+            function setupQueueSSE() {
+                if (eventSource) {
+                    eventSource.close();
+                }
+                
+                eventSource = new EventSource('/api/pharmacy/queue/events');
+                
+                eventSource.onmessage = function(event) {
+                    const patients = JSON.parse(event.data);
+                    updateQueueTable(patients);
+                };
+                
+                eventSource.onerror = function() {
+                    console.error('SSE connection error');
+                    if (eventSource) {
+                        eventSource.close();
+                        eventSource = null;
+                    }
+                };
+            }
+            
+            function updateQueueTable(patients) {
+                const tableBody = document.getElementById('queuePatientsBody');
+                const noQueuePatients = document.getElementById('noQueuePatients');
+                const queuePatientsTable = document.getElementById('queuePatientsTable');
+                
+                if (patients.length === 0) {
+                    noQueuePatients.classList.remove('hidden');
+                    queuePatientsTable.classList.add('hidden');
+                    return;
+                }
+                
+                noQueuePatients.classList.add('hidden');
+                queuePatientsTable.classList.remove('hidden');
+                
+                // Clear existing rows
+                tableBody.innerHTML = '';
+                
+                // Add new rows
+                patients.forEach(patient => {
+                    const row = document.createElement('tr');
+                    
+                    // ID
+                    const idCell = document.createElement('td');
+                    idCell.className = 'px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900';
+                    idCell.textContent = patient.id;
+                    row.appendChild(idCell);
+                    
+                    // Name
+                    const nameCell = document.createElement('td');
+                    nameCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+                    nameCell.textContent = patient.name;
+                    row.appendChild(nameCell);
+                    
+                    // Queue Position
+                    const positionCell = document.createElement('td');
+                    positionCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+                    positionCell.textContent = patient.queuePosition;
+                    row.appendChild(positionCell);
+                    
+                    // Prescription
+                    const prescriptionCell = document.createElement('td');
+                    prescriptionCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+                    
+                    const viewButton = document.createElement('button');
+                    viewButton.className = 'px-3 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300';
+                    viewButton.textContent = 'View';
+                    
+                    viewButton.addEventListener('click', function() {
+                        prescriptionDetails.textContent = patient.prescription || 'No prescription details';
+                        prescriptionModal.classList.remove('hidden');
+                    });
+                    
+                    prescriptionCell.appendChild(viewButton);
+                    row.appendChild(prescriptionCell);
+                    
+                    // Action
+                    const actionCell = document.createElement('td');
+                    actionCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+                    
+                    const actionButton = document.createElement('button');
+                    actionButton.className = 'px-3 py-1 bg-yellow-600 text-white rounded text-xs hover:bg-yellow-700';
+                    actionButton.textContent = 'Dispense & Checkout';
+                    
+                    actionButton.addEventListener('click', function() {
+                        selectedPatient = patient;
+                        confirmPatientName.textContent = `${patient.name} (ID: ${patient.id})`;
+                        confirmPrescription.textContent = patient.prescription || 'No prescription details';
+                        confirmationModal.classList.remove('hidden');
+                    });
+                    
+                    actionCell.appendChild(actionButton);
+                    row.appendChild(actionCell);
+                    
+                    tableBody.appendChild(row);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+

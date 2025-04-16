@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal - Hospital Queue Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        @keyframes highlight {
+            0% { background-color: rgba(59, 130, 246, 0.1); }
+            100% { background-color: transparent; }
+        }
+        .animate-highlight {
+            animation: highlight 2s ease-out;
+        }
+        @keyframes highlight {
+            0% { background-color: #fff3cd; }
+            100% { background-color: transparent; }
+        }
+        .highlight-new {
+            animation: highlight 2s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <header class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <div class="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center text-white font-bold">
+                        A
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg">Administrator Portal</h1>
+                        <p class="text-sm text-gray-500">Hospital Queue Management System</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-sm text-gray-600 hover:text-gray-900">Home</a>
+                    <button id="logoutButton" class="px-3 py-1 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-100">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container mx-auto px-4 py-6">
+        <div class="mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8">
+                    <button id="dashboardTab" class="border-red-500 text-red-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        System Dashboard
+                    </button>
+                    <button id="staffTab" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        Staff Management
+                    </button>
+                    <button id="mutexTab" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        Mutex Logs
+                    </button>
+                </nav>
+            </div>
+        </div>
+        
+        <div id="dashboardSection" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div class="p-6">
+                        <h3 class="text-sm font-medium text-gray-500 mb-1">Total Patients Today</h3>
+                        <p id="totalPatientsToday" class="text-3xl font-bold">0</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div class="p-6">
+                        <h3 class="text-sm font-medium text-gray-500 mb-1">Active Patients</h3>
+                        <p id="activePatients" class="text-3xl font-bold">0</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div class="p-6">
+                        <h3 class="text-sm font-medium text-gray-500 mb-1">Average Wait Time</h3>
+                        <p id="averageWaitTime" class="text-3xl font-bold">0 mins</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div class="p-6">
+                        <h3 class="text-sm font-medium text-gray-500 mb-1">System Status</h3>
+                        <div class="flex items-center">
+                            <div id="systemStatusIndicator" class="h-3 w-3 rounded-full mr-2 bg-green-500"></div>
+                            <p id="systemStatus" class="text-lg font-medium">Operational</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-lg font-medium mb-2">Queue Status</h2>
+                    <p class="text-gray-600 mb-4">Current status of all queues in the system</p>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Queue</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patients Waiting</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Average Wait Time</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="queueStatusBody" class="bg-white divide-y divide-gray-200">
+                                <!-- Queue status will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="staffSection" class="hidden space-y-6">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xl font-bold">Staff Accounts</h2>
+                <button id="addStaffButton" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                    Add New Staff
+                </button>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Node ID</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staffBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Staff will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div id="mutexSection" class="hidden space-y-6">
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-lg font-medium mb-2">Ricart-Agrawala Mutex Logs</h2>
+                    <p class="text-gray-600 mb-4">Logs of distributed mutual exclusion events</p>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Node ID</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timestamp</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Target Node</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mutexLogsBody" class="bg-white divide-y divide-gray-200">
+                                <!-- Mutex logs will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Add Staff Modal -->
+    <div id="addStaffModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg max-w-md w-full">
+            <div class="p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Create Staff Account</h3>
+                <p class="text-sm text-gray-500 mb-4">
+                    Add a new staff member to the system
+                </p>
+                
+                <form id="addStaffForm" class="space-y-4">
+                    <div>
+                        <label for="staffName" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                        <input type="text" id="staffName" name="staffName" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500" required>
+                    </div>
+                    
+                    <div>
+                        <label for="staffUsername" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                        <input type="text" id="staffUsername" name="staffUsername" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500" required>
+                    </div>
+                    
+                    <div>
+                        <label for="staffPassword" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input type="password" id="staffPassword" name="staffPassword" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500" required>
+                    </div>
+                    
+                    <div>
+                        <label for="staffRole" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                        <select id="staffRole" name="staffRole" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500" required>
+                            <option value="">Select role</option>
+                            <option value="receptionist">Receptionist</option>
+                            <option value="doctor">Doctor</option>
+                            <option value="pharmacist">Pharmacist</option>
+                            <option value="admin">Administrator</option>
+                        </select>
+                    </div>
+                    
+                    <div id="nodeIdContainer" class="hidden">
+                        <label for="nodeId" class="block text-sm font-medium text-gray-700 mb-1">Node ID</label>
+                        <input type="text" id="nodeId" name="nodeId" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500" placeholder="e.g., node_2">
+                    </div>
+                    
+                    <div id="staffErrorMessage" class="text-red-500 text-sm hidden"></div>
+                </form>
+                
+                <div class="flex justify-end space-x-2 mt-6">
+                    <button id="cancelAddStaffButton" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Cancel
+                    </button>
+                    <button id="submitAddStaffButton" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Create Account
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dashboardTab = document.getElementById('dashboardTab');
+            const staffTab = document.getElementById('staffTab');
+            const mutexTab = document.getElementById('mutexTab');
+            const dashboardSection = document.getElementById('dashboardSection');
+            const staffSection = document.getElementById('staffSection');
+            const mutexSection = document.getElementById('mutexSection');
+            const addStaffButton = document.getElementById('addStaffButton');
+            const addStaffModal = document.getElementById('addStaffModal');
+            const cancelAddStaffButton = document.getElementById('cancelAddStaffButton');
+            const submitAddStaffButton = document.getElementById('submitAddStaffButton');
+            const staffRole = document.getElementById('staffRole');
+            const nodeIdContainer = document.getElementById('nodeIdContainer');
+            const logoutButton = document.getElementById('logoutButton');
+            
+            let eventSource = null;
+            
+            // Load dashboard data
+            loadSystemStats();
+            setupSystemStatsSSE();
+            
+            // Tab switching
+            dashboardTab.addEventListener('click', function() {
+                dashboardTab.classList.add('border-red-500', 'text-red-600');
+                dashboardTab.classList.remove('border-transparent', 'text-gray-500');
+                staffTab.classList.add('border-transparent', 'text-gray-500');
+                staffTab.classList.remove('border-red-500', 'text-red-600');
+                mutexTab.classList.add('border-transparent', 'text-gray-500');
+                mutexTab.classList.remove('border-red-500', 'text-red-600');
+                
+                dashboardSection.classList.remove('hidden');
+                staffSection.classList.add('hidden');
+                mutexSection.classList.add('hidden');
+                
+                loadSystemStats();
+                setupSystemStatsSSE();
+            });
+            
+            staffTab.addEventListener('click', function() {
+                staffTab.classList.add('border-red-500', 'text-red-600');
+                staffTab.classList.remove('border-transparent', 'text-gray-500');
+                dashboardTab.classList.add('border-transparent', 'text-gray-500');
+                dashboardTab.classList.remove('border-red-500', 'text-red-600');
+                mutexTab.classList.add('border-transparent', 'text-gray-500');
+                mutexTab.classList.remove('border-red-500', 'text-red-600');
+                
+                staffSection.classList.remove('hidden');
+                dashboardSection.classList.add('hidden');
+                mutexSection.classList.add('hidden');
+                
+                loadStaff();
+            });
+            
+            mutexTab.addEventListener('click', function() {
+                mutexTab.classList.add('border-red-500', 'text-red-600');
+                mutexTab.classList.remove('border-transparent', 'text-gray-500');
+                dashboardTab.classList.add('border-transparent', 'text-gray-500');
+                dashboardTab.classList.remove('border-red-500', 'text-red-600');
+                staffTab.classList.add('border-transparent', 'text-gray-500');
+                staffTab.classList.remove('border-red-500', 'text-red-600');
+                
+                mutexSection.classList.remove('hidden');
+                dashboardSection.classList.add('hidden');
+                staffSection.classList.add('hidden');
+                
+                loadMutexLogs();
+            });
+            
+            // Add staff button
+            addStaffButton.addEventListener('click', function() {
+                document.getElementById('addStaffForm').reset();
+                document.getElementById('staffErrorMessage').classList.add('hidden');
+                nodeIdContainer.classList.add('hidden');
+                addStaffModal.classList.remove('hidden');
+            });
+            
+            // Staff role change
+            staffRole.addEventListener('change', function() {
+                if (staffRole.value === 'receptionist') {
+                    nodeIdContainer.classList.remove('hidden');
+                } else {
+                    nodeIdContainer.classList.add('hidden');
+                }
+            });
+            
+            // Cancel add staff button
+            cancelAddStaffButton.addEventListener('click', function() {
+                addStaffModal.classList.add('hidden');
+            });
+            
+            // Submit add staff button
+            submitAddStaffButton.addEventListener('click', function() {
+                const staffName = document.getElementById('staffName').value;
+                const staffUsername = document.getElementById('staffUsername').value;
+                const staffPassword = document.getElementById('staffPassword').value;
+                const staffRole = document.getElementById('staffRole').value;
+                const nodeId = document.getElementById('nodeId').value;
+                const errorMessage = document.getElementById('staffErrorMessage');
+                
+                if (!staffName || !staffUsername || !staffPassword || !staffRole) {
+                    errorMessage.textContent = 'Please fill in all required fields';
+                    errorMessage.classList.remove('hidden');
+                    return;
+                }
+                
+                if (staffRole === 'receptionist' && !nodeId) {
+                    errorMessage.textContent = 'Node ID is required for receptionists';
+                    errorMessage.classList.remove('hidden');
+                    return;
+                }
+                
+                // Disable button and show loading state
+                submitAddStaffButton.disabled = true;
+                submitAddStaffButton.textContent = 'Creating...';
+                
+                // Send create staff request
+                fetch('/api/admin/create-staff', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: staffName,
+                        username: staffUsername,
+                        password: staffPassword,
+                        role: staffRole,
+                        node_id: staffRole === 'receptionist' ? nodeId : null
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(errorData => {
+                            throw new Error(errorData.error || `Server error: ${response.status}`);
+                        }).catch(e => {
+                            // If response is not JSON, use status text
+                            throw new Error(`Failed to create staff account: ${response.statusText}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Hide modal
+                        addStaffModal.classList.add('hidden');
+                        
+                        // Reload staff list
+                        loadStaff();
+                        
+                        // Show success message
+                        alert('Staff account created successfully.');
+                        
+                        // Clear form
+                        addStaffForm.reset();
+                        errorMessage.classList.add('hidden');
+                    } else {
+                        throw new Error(data.error || 'Failed to create staff account');
+                    }
+                })
+                .catch(error => {
+                    console.error('Staff creation error:', error);
+                    errorMessage.textContent = error.message || 'Failed to create staff account';
+                    errorMessage.classList.remove('hidden');
+                })
+                .finally(() => {
+                    // Re-enable button
+                    submitAddStaffButton.disabled = false;
+                    submitAddStaffButton.textContent = 'Create Account';
+                });
+            });
+            
+            // Logout button
+            logoutButton.addEventListener('click', function() {
+                fetch('/logout')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.href = '/';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Logout failed:', error);
+                    });
+            });
+            
+            function loadSystemStats() {
+                fetch('/api/admin/system-stats')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to load system stats');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        updateSystemStats(data);
+                    })
+                    .catch(error => {
+                        console.error('Error loading system stats:', error);
+                    });
+            }
+            
+            function setupSystemStatsSSE() {
+                if (window.systemStatsEventSource) {
+                    window.systemStatsEventSource.close();
+                    window.systemStatsEventSource = null;
+                }
+                
+                window.systemStatsEventSource = new EventSource('/api/admin/system-stats/events');
+                
+                window.systemStatsEventSource.onmessage = function(event) {
+                    try {
+                    const data = JSON.parse(event.data);
+                    updateSystemStats(data);
+                    } catch (error) {
+                        console.error('Error processing system stats:', error);
+                    }
+                };
+                
+                window.systemStatsEventSource.onerror = function(error) {
+                    console.error('System stats SSE Error:', error);
+                    if (window.systemStatsEventSource) {
+                        window.systemStatsEventSource.close();
+                        window.systemStatsEventSource = null;
+                    }
+                    // Try to reconnect after 5 seconds
+                    setTimeout(setupSystemStatsSSE, 5000);
+                };
+            }
+            
+            function updateSystemStats(data) {
+                document.getElementById('totalPatientsToday').textContent = data.totalPatientsToday;
+                document.getElementById('activePatients').textContent = data.activePatients;
+                document.getElementById('averageWaitTime').textContent = `${data.averageWaitTime} mins`;
+                document.getElementById('systemStatus').textContent = data.systemStatus;
+                
+                const statusIndicator = document.getElementById('systemStatusIndicator');
+                if (data.systemStatus === 'Operational') {
+                    statusIndicator.className = 'h-3 w-3 rounded-full mr-2 bg-green-500';
+                } else {
+                    statusIndicator.className = 'h-3 w-3 rounded-full mr-2 bg-red-500';
+                }
+                
+                const queueStatusBody = document.getElementById('queueStatusBody');
+                queueStatusBody.innerHTML = '';
+                
+                data.queues.forEach(queue => {
+                    const row = document.createElement('tr');
+                    
+                    // Queue name
+                    const nameCell = document.createElement('td');
+                    nameCell.className = 'px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900';
+                    nameCell.textContent = queue.name;
+                    row.appendChild(nameCell);
+                    
+                    // Patients waiting
+                    const waitingCell = document.createElement('td');
+                    waitingCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+                    waitingCell.textContent = queue.patientsWaiting;
+                    row.appendChild(waitingCell);
+                    
+                    // Average wait time
+                    const waitTimeCell = document.createElement('td');
+                    waitTimeCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+                    waitTimeCell.textContent = `${queue.averageWaitTime} mins`;
+                    row.appendChild(waitTimeCell);
+                    
+                    // Status
+                    const statusCell = document.createElement('td');
+                    statusCell.className = 'px-6 py-4 whitespace-nowrap text-sm';
+                    
+                    const statusDiv = document.createElement('div');
+                    statusDiv.className = 'flex items-center';
+                    
+                    const statusDot = document.createElement('div');
+                    if (queue.status === 'Normal') {
+                        statusDot.className = 'h-2 w-2 rounded-full mr-2 bg-green-500';
+                    } else if (queue.status === 'Busy') {
+                        statusDot.className = 'h-2 w-2 rounded-full mr-2 bg-yellow-500';
+                    } else {
+                        statusDot.className = 'h-2 w-2 rounded-full mr-2 bg-red-500';
+                    }
+                    
+                    statusDiv.appendChild(statusDot);
+                    statusDiv.appendChild(document.createTextNode(queue.status));
+                    
+                    statusCell.appendChild(statusDiv);
+                    row.appendChild(statusCell);
+                    
+                    queueStatusBody.appendChild(row);
+                });
+            }
+            
+            function loadStaff() {
+                fetch('/api/admin/staff')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to load staff');
+                        }
+                        return response.json();
+                    })
+                    .then(staff => {
+                        const staffBody = document.getElementById('staffBody');
+                        staffBody.innerHTML = '';
+                        
+                        if (staff.length === 0) {
+                            const row = document.createElement('tr');
+                            const cell = document.createElement('td');
+                            cell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center';
+                            cell.colSpan = 6;
+                            cell.textContent = 'No staff accounts found';
+                            row.appendChild(cell);
+                            staffBody.appendChild(row);
+                            return;
+                        }
+                        
+                        staff.forEach(member => {
+                            const row = document.createElement('tr');
+                            
+                            // Name
+                            const nameCell = document.createElement('td');
+                            nameCell.className = 'px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900';
+                            nameCell.textContent = member.name;
+                            row.appendChild(nameCell);
+                            
+                            // Username
+                            const usernameCell = document.createElement('td');
+                            usernameCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+                            usernameCell.textContent = member.username;
+                            row.appendChild(usernameCell);
+                            
+                            // Role
+                            const roleCell = document.createElement('td');
+                            roleCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+                            
+                            const roleBadge = document.createElement('span');
+                            roleBadge.className = 'px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800';
+                            roleBadge.textContent = member.role.charAt(0).toUpperCase() + member.role.slice(1);
+                            
+                            roleCell.appendChild(roleBadge);
+                            row.appendChild(roleCell);
+                            
+                            // Node ID
+                            const nodeCell = document.createElement('td');
+                            nodeCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+                            nodeCell.textContent = member.node_id || 'N/A';
+                            row.appendChild(nodeCell);
+                            
+                            // Status
+                            const statusCell = document.createElement('td');
+                            statusCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+                            
+                            const statusDiv = document.createElement('div');
+                            statusDiv.className = 'flex items-center';
+                            
+                            const statusDot = document.createElement('div');
+                            statusDot.className = member.active ? 'h-2 w-2 rounded-full mr-2 bg-green-500' : 'h-2 w-2 rounded-full mr-2 bg-gray-300';
+                            
+                            statusDiv.appendChild(statusDot);
+                            statusDiv.appendChild(document.createTextNode(member.active ? 'Active' : 'Inactive'));
+                            
+                            statusCell.appendChild(statusDiv);
+                            row.appendChild(statusCell);
+                            
+                            // Actions
+                            const actionCell = document.createElement('td');
+                            actionCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+                            
+                            const actionDiv = document.createElement('div');
+                            actionDiv.className = 'flex space-x-2';
+                            
+                            const editButton = document.createElement('button');
+                            editButton.className = 'px-3 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300';
+                            editButton.textContent = 'Edit';
+                            editButton.addEventListener('click', () => editStaff(member));
+                            
+                            const toggleButton = document.createElement('button');
+                            toggleButton.className = 'px-3 py-1 bg-gray-200 text-red-600 rounded text-xs hover:bg-gray-300';
+                            toggleButton.textContent = member.active ? 'Deactivate' : 'Activate';
+                            toggleButton.addEventListener('click', () => toggleStaffStatus(member));
+                            
+                            actionDiv.appendChild(editButton);
+                            actionDiv.appendChild(toggleButton);
+                            
+                            actionCell.appendChild(actionDiv);
+                            row.appendChild(actionCell);
+                            
+                            staffBody.appendChild(row);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error loading staff:', error);
+                    });
+            }
+            
+            function loadMutexLogs() {
+                fetch('/api/admin/mutex-logs')
+                    .then(response => response.json())
+                    .then(logs => {
+                        const tbody = document.getElementById('mutexLogsBody');
+                        tbody.innerHTML = '';  // Clear existing logs
+                        
+                        if (logs.length === 0) {
+                            const row = document.createElement('tr');
+                            const cell = document.createElement('td');
+                            cell.colSpan = 5;
+                            cell.className = 'text-center py-4';
+                            cell.textContent = 'No mutex logs found';
+                            row.appendChild(cell);
+                            tbody.appendChild(row);
+                            return;
+                        }
+                        
+                        logs.forEach(log => {
+                            const row = document.createElement('tr');
+                            row.classList.add('highlight-new');
+                            
+                            // Create cells
+                            const timeCell = document.createElement('td');
+                            timeCell.textContent = log.created_at;
+                            
+                            const nodeCell = document.createElement('td');
+                            nodeCell.textContent = log.node_id;
+                            
+                            const eventCell = document.createElement('td');
+                            const badge = document.createElement('span');
+                            badge.classList.add('badge');
+                            
+                            // Set badge color based on event type
+                            switch(log.event) {
+                                case 'REQUEST':
+                                    badge.classList.add('bg-primary');
+                                    break;
+                                case 'REPLY':
+                                    badge.classList.add('bg-success');
+                                    break;
+                                case 'CRITICAL_SECTION':
+                                    badge.classList.add('bg-warning');
+                                    break;
+                                case 'RELEASE':
+                                    badge.classList.add('bg-info');
+                                    break;
+                                case 'DEFER':
+                                    badge.classList.add('bg-secondary');
+                                    break;
+                                case 'RECEIVED_REPLY':
+                                    badge.classList.add('bg-success');
+                                    break;
+                                default:
+                                    badge.classList.add('bg-dark');
+                            }
+                            badge.textContent = log.event;
+                            eventCell.appendChild(badge);
+                            
+                            const timestampCell = document.createElement('td');
+                            timestampCell.textContent = log.timestamp;
+                            
+                            const targetCell = document.createElement('td');
+                            targetCell.textContent = log.target_node || '-';
+                            
+                            // Append cells to row
+                            row.appendChild(timeCell);
+                            row.appendChild(nodeCell);
+                            row.appendChild(eventCell);
+                            row.appendChild(timestampCell);
+                            row.appendChild(targetCell);
+                            
+                            tbody.appendChild(row);
+                        });
+                        
+                        setupMutexLogsSSE();  // Setup SSE after initial load
+                    })
+                    .catch(error => {
+                        console.error('Error loading mutex logs:', error);
+                        document.getElementById('mutexLogsBody').innerHTML = '<tr><td colspan="5" class="text-center">Failed to load mutex logs</td></tr>';
+                    });
+            }
+            
+            function setupMutexLogsSSE() {
+                if (window.mutexEventSource) {
+                    window.mutexEventSource.close();
+                }
+                
+                window.mutexEventSource = new EventSource('/api/admin/mutex-logs/events');
+                
+                window.mutexEventSource.onmessage = function(event) {
+                    try {
+                        const log = JSON.parse(event.data);
+                        if (log.error) {
+                            console.error('Error in mutex logs SSE:', log.error);
+                            return;
+                        }
+                        
+                        const tbody = document.getElementById('mutexLogsBody');
+                        const row = document.createElement('tr');
+                        row.classList.add('highlight-new');
+                        
+                        // Create cells
+                        const timeCell = document.createElement('td');
+                        timeCell.textContent = log.created_at;
+                        
+                        const nodeCell = document.createElement('td');
+                        nodeCell.textContent = log.node_id;
+                        
+                        const eventCell = document.createElement('td');
+                        const badge = document.createElement('span');
+                        badge.classList.add('badge');
+                        
+                        // Set badge color based on event type
+                        switch(log.event) {
+                            case 'REQUEST':
+                                badge.classList.add('bg-primary');
+                                break;
+                            case 'REPLY':
+                                badge.classList.add('bg-success');
+                                break;
+                            case 'CRITICAL_SECTION':
+                                badge.classList.add('bg-warning');
+                                break;
+                            case 'RELEASE':
+                                badge.classList.add('bg-info');
+                                break;
+                            case 'DEFER':
+                                badge.classList.add('bg-secondary');
+                                break;
+                            case 'RECEIVED_REPLY':
+                                badge.classList.add('bg-success');
+                                break;
+                            default:
+                                badge.classList.add('bg-dark');
+                        }
+                        badge.textContent = log.event;
+                        eventCell.appendChild(badge);
+                        
+                        const timestampCell = document.createElement('td');
+                        timestampCell.textContent = log.timestamp;
+                        
+                        const targetCell = document.createElement('td');
+                        targetCell.textContent = log.target_node || '-';
+                        
+                        // Append cells to row
+                        row.appendChild(timeCell);
+                        row.appendChild(nodeCell);
+                        row.appendChild(eventCell);
+                        row.appendChild(timestampCell);
+                        row.appendChild(targetCell);
+                        
+                        // Insert at the top of the table
+                        tbody.insertBefore(row, tbody.firstChild);
+                        
+                        // Remove highlight after animation
+                        setTimeout(() => {
+                            row.classList.remove('highlight-new');
+                        }, 2000);
+                        
+                        // Keep only the last 100 logs
+                        while (tbody.children.length > 100) {
+                            tbody.removeChild(tbody.lastChild);
+                        }
+                    } catch (error) {
+                        console.error('Error processing mutex log:', error);
+                    }
+                };
+                
+                window.mutexEventSource.onerror = function(error) {
+                    console.error('SSE Error:', error);
+                    if (window.mutexEventSource) {
+                        window.mutexEventSource.close();
+                        window.mutexEventSource = null;
+                    }
+                    // Try to reconnect after 5 seconds
+                    setTimeout(setupMutexLogsSSE, 5000);
+                };
+            }
+            
+            function editStaff(staff) {
+                // Populate the form with staff details
+                document.getElementById('staffName').value = staff.name;
+                document.getElementById('staffUsername').value = staff.username;
+                document.getElementById('staffRole').value = staff.role;
+                if (staff.role === 'receptionist') {
+                    document.getElementById('nodeIdContainer').classList.remove('hidden');
+                    document.getElementById('nodeId').value = staff.node_id || '';
+                } else {
+                    document.getElementById('nodeIdContainer').classList.add('hidden');
+                }
+                
+                // Change modal title and button text
+                document.querySelector('#addStaffModal h3').textContent = 'Edit Staff Account';
+                submitAddStaffButton.textContent = 'Save Changes';
+                
+                // Store staff ID for update
+                submitAddStaffButton.dataset.staffId = staff.id;
+                
+                // Show modal
+                addStaffModal.classList.remove('hidden');
+                
+                // Update form submission handler
+                submitAddStaffButton.onclick = function() {
+                    const updatedData = {
+                        name: document.getElementById('staffName').value,
+                        username: document.getElementById('staffUsername').value,
+                        role: document.getElementById('staffRole').value,
+                        node_id: document.getElementById('staffRole').value === 'receptionist' ? document.getElementById('nodeId').value : null
+                    };
+                    
+                    // If password field is not empty, include it in the update
+                    const password = document.getElementById('staffPassword').value;
+                    if (password) {
+                        updatedData.password = password;
+                    }
+                    
+                    // Send update request
+                    fetch(`/api/admin/staff/${staff.id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(updatedData)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(errorData => {
+                                throw new Error(errorData.error || `Server error: ${response.status}`);
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            addStaffModal.classList.add('hidden');
+                            loadStaff();
+                            alert('Staff account updated successfully.');
+                        } else {
+                            throw new Error(data.error || 'Failed to update staff account');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Staff update error:', error);
+                        const errorMessage = document.getElementById('staffErrorMessage');
+                        errorMessage.textContent = error.message;
+                        errorMessage.classList.remove('hidden');
+                    });
+                };
+            }
+            
+            function toggleStaffStatus(staff) {
+                if (!confirm(`Are you sure you want to ${staff.active ? 'deactivate' : 'activate'} this staff account?`)) {
+                    return;
+                }
+                
+                fetch(`/api/admin/staff/${staff.id}/toggle`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(errorData => {
+                            throw new Error(errorData.error || `Server error: ${response.status}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        loadStaff();
+                    } else {
+                        throw new Error(data.error || 'Failed to update staff status');
+                    }
+                })
+                .catch(error => {
+                    console.error('Staff status update error:', error);
+                    alert(error.message);
+                });
+            }
+            
+            // Add cleanup on page unload
+            window.addEventListener('beforeunload', function() {
+                if (window.mutexEventSource) {
+                    window.mutexEventSource.close();
+                    window.mutexEventSource = null;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

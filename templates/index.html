@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Queue Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-16">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-blue-700 mb-4">
+                Hospital Queue Management System
+            </h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                A comprehensive solution for managing patient queues across different hospital departments
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold mb-2">Patient Portal</h2>
+                    <p class="text-gray-600 mb-4">Track your queue position</p>
+                    <p class="text-sm text-gray-500 mb-4">
+                        Enter your 4-digit ID to check your current queue status and assigned doctor.
+                    </p>
+                    <a href="/templates/patient.html" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-center">
+                        Access Portal
+                    </a>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold mb-2">Receptionist</h2>
+                    <p class="text-gray-600 mb-4">Patient registration</p>
+                    <p class="text-sm text-gray-500 mb-4">
+                        Register new patients, generate IDs, and assign to doctor queues.
+                    </p>
+                    <a href="/templates/login.html?role=receptionist" class="block w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded text-center">
+                        Staff Login
+                    </a>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold mb-2">Doctor Portal</h2>
+                    <p class="text-gray-600 mb-4">Patient consultation</p>
+                    <p class="text-sm text-gray-500 mb-4">
+                        View your patient queue, prescribe medicines, and send to pharmacy.
+                    </p>
+                    <a href="/templates/login.html?role=doctor" class="block w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded text-center">
+                        Staff Login
+                    </a>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold mb-2">Pharmacy</h2>
+                    <p class="text-gray-600 mb-4">Medicine dispensing</p>
+                    <p class="text-sm text-gray-500 mb-4">
+                        View pharmacy queue, dispense medicines, and check out patients.
+                    </p>
+                    <a href="/templates/login.html?role=pharmacist" class="block w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded text-center">
+                        Staff Login
+                    </a>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold mb-2">Admin Portal</h2>
+                    <p class="text-gray-600 mb-4">System management</p>
+                    <p class="text-sm text-gray-500 mb-4">
+                        Manage staff accounts, monitor system health, and configure settings.
+                    </p>
+                    <a href="/templates/login.html?role=admin" class="block w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-center">
+                        Admin Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

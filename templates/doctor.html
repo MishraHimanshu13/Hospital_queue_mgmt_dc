@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Portal - Hospital Queue Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <header class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <div class="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold">
+                        D
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg">Doctor Portal</h1>
+                        <p class="text-sm text-gray-500">Hospital Queue Management System</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-sm text-gray-600 hover:text-gray-900">Home</a>
+                    <button id="logoutButton" class="px-3 py-1 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-100">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container mx-auto px-4 py-6">
+        <div class="mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8">
+                    <button id="queueTab" class="border-purple-500 text-purple-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        Patient Queue
+                    </button>
+                    <button id="currentTab" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        Current Patient
+                    </button>
+                </nav>
+            </div>
+        </div>
+        
+        <div id="queueSection" class="space-y-6">
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-lg font-medium mb-2">Your Patient Queue</h2>
+                    <p class="text-gray-600 mb-4">Patients waiting for consultation</p>
+                    
+                    <div id="noQueuePatients" class="text-center py-6 text-gray-500 hidden">
+                        No patients currently waiting
+                    </div>
+                    
+                    <div id="queuePatientsTable" class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Queue Position</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wait Time</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="queuePatientsBody" class="bg-white divide-y divide-gray-200">
+                                <!-- Queue patients will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="currentSection" class="hidden">
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-lg font-medium mb-2">Current Patient</h2>
+                    <p class="text-gray-600 mb-4">Patient currently in consultation</p>
+                    
+                    <div id="noCurrentPatient" class="text-center py-12">
+                        <p class="text-gray-500 mb-4">No patient currently in consultation</p>
+                        <button id="checkQueueButton" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                            Check Queue
+                        </button>
+                    </div>
+                    
+                    <div id="currentPatientDetails" class="space-y-6 hidden">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <h3 class="text-sm font-medium text-gray-500">Patient ID</h3>
+                                <p id="currentPatientId" class="text-lg font-semibold"></p>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-medium text-gray-500">Patient Name</h3>
+                                <p id="currentPatientName" class="text-lg font-semibold"></p>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-medium text-gray-500">Contact</h3>
+                                <p id="currentPatientContact" class="text-lg font-semibold"></p>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-medium text-gray-500">Wait Time</h3>
+                                <p id="currentPatientWaitTime" class="text-lg font-semibold"></p>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label for="prescription" class="block text-sm font-medium text-gray-700">Prescription</label>
+                            <textarea id="prescription" name="prescription" rows="5" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" placeholder="Enter prescription details..."></textarea>
+                        </div>
+                        
+                        <div class="flex justify-end space-x-2">
+                            <button id="cancelConsultationButton" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                                Cancel
+                            </button>
+                            <button id="completeConsultationButton" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                                Complete & Send to Pharmacy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Confirmation Modal -->
+        <div id="confirmationModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center hidden">
+            <div class="bg-white rounded-lg max-w-md w-full">
+                <div class="p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Confirm Completion</h3>
+                    <p class="text-sm text-gray-500 mb-4">
+                        This will complete the consultation and send the patient to the pharmacy queue.
+                    </p>
+                    
+                    <div class="py-4">
+                        <h4 class="font-medium mb-2">Prescription:</h4>
+                        <p id="confirmPrescription" class="text-sm bg-gray-100 p-3 rounded"></p>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-2 mt-4">
+                        <button id="cancelConfirmButton" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                            Cancel
+                        </button>
+                        <button id="confirmButton" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                            Confirm
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const queueTab = document.getElementById('queueTab');
+            const currentTab = document.getElementById('currentTab');
+            const queueSection = document.getElementById('queueSection');
+            const currentSection = document.getElementById('currentSection');
+            const checkQueueButton = document.getElementById('checkQueueButton');
+            const noCurrentPatient = document.getElementById('noCurrentPatient');
+            const currentPatientDetails = document.getElementById('currentPatientDetails');
+            const cancelConsultationButton = document.getElementById('cancelConsultationButton');
+            const completeConsultationButton = document.getElementById('completeConsultationButton');
+            const confirmationModal = document.getElementById('confirmationModal');
+            const confirmPrescription = document.getElementById('confirmPrescription');
+            const cancelConfirmButton = document.getElementById('cancelConfirmButton');
+            const confirmButton = document.getElementById('confirmButton');
+            const logoutButton = document.getElementById('logoutButton');
+            
+            let currentPatient = null;
+            let eventSource = null;
+            
+            // Load queue
+            loadQueue();
+            setupQueueSSE();
+            
+            // Tab switching
+            queueTab.addEventListener('click', function() {
+                queueTab.classList.add('border-purple-500', 'text-purple-600');
+                queueTab.classList.remove('border-transparent', 'text-gray-500');
+                currentTab.classList.add('border-transparent', 'text-gray-500');
+                currentTab.classList.remove('border-purple-500', 'text-purple-600');
+                
+                queueSection.classList.remove('hidden');
+                currentSection.classList.add('hidden');
+                
+                loadQueue();
+            });
+            
+            currentTab.addEventListener('click', function() {
+                currentTab.classList.add('border-purple-500', 'text-purple-600');
+                currentTab.classList.remove('border-transparent', 'text-gray-500');
+                queueTab.classList.add('border-transparent', 'text-gray-500');
+                queueTab.classList.remove('border-purple-500', 'text-purple-600');
+                
+                currentSection.classList.remove('hidden');
+                queueSection.classList.add('hidden');
+                
+                updateCurrentPatientView();
+            });
+            
+            // Check queue button
+            checkQueueButton.addEventListener('click', function() {
+                queueTab.click();
+            });
+            
+            // Cancel consultation button
+            cancelConsultationButton.addEventListener('click', function() {
+                currentPatient = null;
+                document.getElementById('prescription').value = '';
+                updateCurrentPatientView();
+            });
+            
+            // Complete consultation button
+            completeConsultationButton.addEventListener('click', function() {
+                const prescription = document.getElementById('prescription').value;
+                confirmPrescription.textContent = prescription || 'No prescription added';
+                confirmationModal.classList.remove('hidden');
+            });
+            
+            // Cancel confirm button
+            cancelConfirmButton.addEventListener('click', function() {
+                confirmationModal.classList.add('hidden');
+            });
+            
+            // Confirm button
+            confirmButton.addEventListener('click', function() {
+                const prescription = document.getElementById('prescription').value;
+                
+                // Disable button and show loading state
+                confirmButton.disabled = true;
+                confirmButton.textContent = 'Processing...';
+                
+                // Send complete consultation request
+                fetch('/api/doctor/complete-consultation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        patientId: currentPatient.id,
+                        prescription: prescription
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to complete consultation');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Hide modal
+                        confirmationModal.classList.add('hidden');
+                        
+                        // Reset current patient
+                        currentPatient = null;
+                        document.getElementById('prescription').value = '';
+                        
+                        // Update view
+                        updateCurrentPatientView();
+                        
+                        // Show success message
+                        alert('Consultation completed successfully. Patient moved to pharmacy queue.');
+                    } else {
+                        throw new Error(data.error || 'Failed to complete consultation');
+                    }
+                })
+                .catch(error => {
+                    alert(error.message || 'An error occurred');
+                })
+                .finally(() => {
+                    confirmButton.disabled = false;
+                    confirmButton.textContent = 'Confirm';
+                });
+            });
+            
+            // Logout button
+            logoutButton.addEventListener('click', function() {
+                fetch('/logout')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.href = '/';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Logout failed:', error);
+                    });
+            });
+            
+            function loadQueue() {
+                fetch('/api/doctor/queue')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to load queue');
+                        }
+                        return response.json();
+                    })
+                    .then(patients => {
+                        updateQueueTable(patients);
+                    })
+                    .catch(error => {
+                        console.error('Error loading queue:', error);
+                    });
+            }
+            
+            function setupQueueSSE() {
+                if (eventSource) {
+                    eventSource.close();
+                }
+                
+                eventSource = new EventSource('/api/doctor/queue/events');
+                
+                eventSource.onmessage = function(event) {
+                    const patients = JSON.parse(event.data);
+                    updateQueueTable(patients);
+                };
+                
+                eventSource.onerror = function() {
+                    console.error('SSE connection error');
+                    if (eventSource) {
+                        eventSource.close();
+                        eventSource = null;
+                    }
+                };
+            }
+            
+            function updateQueueTable(patients) {
+                const tableBody = document.getElementById('queuePatientsBody');
+                const noQueuePatients = document.getElementById('noQueuePatients');
+                const queuePatientsTable = document.getElementById('queuePatientsTable');
+                
+                if (patients.length === 0) {
+                    noQueuePatients.classList.remove('hidden');
+                    queuePatientsTable.classList.add('hidden');
+                    return;
+                }
+                
+                noQueuePatients.classList.add('hidden');
+                queuePatientsTable.classList.remove('hidden');
+                
+                // Clear existing rows
+                tableBody.innerHTML = '';
+                
+                // Add new rows
+                patients.forEach(patient => {
+                    const row = document.createElement('tr');
+                    
+                    // ID
+                    const idCell = document.createElement('td');
+                    idCell.className = 'px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900';
+                    idCell.textContent = patient.id;
+                    row.appendChild(idCell);
+                    
+                    // Name
+                    const nameCell = document.createElement('td');
+                    nameCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+                    nameCell.textContent = patient.name;
+                    row.appendChild(nameCell);
+                    
+                    // Queue Position
+                    const positionCell = document.createElement('td');
+                    positionCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+                    positionCell.textContent = patient.queuePosition;
+                    row.appendChild(positionCell);
+                    
+                    // Wait Time
+                    const waitTimeCell = document.createElement('td');
+                    waitTimeCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+                    waitTimeCell.textContent = `${patient.waitTime} mins`;
+                    row.appendChild(waitTimeCell);
+                    
+                    // Action
+                    const actionCell = document.createElement('td');
+                    actionCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+                    
+                    const actionButton = document.createElement('button');
+                    actionButton.className = 'px-3 py-1 bg-purple-600 text-white rounded text-xs hover:bg-purple-700';
+                    actionButton.textContent = 'Start Consultation';
+                    actionButton.disabled = currentPatient !== null;
+                    
+                    actionButton.addEventListener('click', function() {
+                        startConsultation(patient);
+                    });
+                    
+                    actionCell.appendChild(actionButton);
+                    row.appendChild(actionCell);
+                    
+                    tableBody.appendChild(row);
+                });
+            }
+            
+            function startConsultation(patient) {
+                fetch('/api/doctor/start-consultation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        patientId: patient.id
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to start consultation');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        currentPatient = patient;
+                        updateCurrentPatientView();
+                        currentTab.click();
+                    } else {
+                        throw new Error(data.error || 'Failed to start consultation');
+                    }
+                })
+                .catch(error => {
+                    alert(error.message || 'An error occurred');
+                });
+            }
+            
+            function updateCurrentPatientView() {
+                if (currentPatient) {
+                    noCurrentPatient.classList.add('hidden');
+                    currentPatientDetails.classList.remove('hidden');
+                    
+                    document.getElementById('currentPatientId').textContent = currentPatient.id;
+                    document.getElementById('currentPatientName').textContent = currentPatient.name;
+                    document.getElementById('currentPatientContact').textContent = currentPatient.contact || 'N/A';
+                    document.getElementById('currentPatientWaitTime').textContent = `${currentPatient.waitTime || 0} minutes`;
+                } else {
+                    noCurrentPatient.classList.remove('hidden');
+                    currentPatientDetails.classList.add('hidden');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+

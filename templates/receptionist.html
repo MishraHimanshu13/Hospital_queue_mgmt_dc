@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receptionist Portal - Hospital Queue Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <header class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <div class="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white font-bold">
+                        R
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg">Receptionist Portal</h1>
+                        <p class="text-sm text-gray-500">Hospital Queue Management System</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-sm text-gray-600 hover:text-gray-900">Home</a>
+                    <button id="logoutButton" class="px-3 py-1 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-100">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container mx-auto px-4 py-6">
+        <div class="mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8">
+                    <button id="registerTab" class="border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        Register Patient
+                    </button>
+                    <button id="waitingTab" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        Waiting Patients
+                    </button>
+                </nav>
+            </div>
+        </div>
+        
+        <div id="registerSection" class="space-y-6">
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-lg font-medium mb-2">Patient Registration</h2>
+                    <p class="text-gray-600 mb-4">Register a new patient and assign to a doctor</p>
+                    
+                    <form id="registerForm" class="space-y-4">
+                        <div>
+                            <label for="patientName" class="block text-sm font-medium text-gray-700 mb-1">Patient Name</label>
+                            <input type="text" id="patientName" name="patientName" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                        </div>
+                        
+                        <div>
+                            <label for="patientContact" class="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
+                            <input type="text" id="patientContact" name="patientContact" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label for="doctor" class="block text-sm font-medium text-gray-700 mb-1">Assign Doctor</label>
+                            <select id="doctor" name="doctor" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                                <option value="">Select a doctor</option>
+                                <!-- Doctors will be loaded here -->
+                            </select>
+                        </div>
+                        
+                        <div id="errorMessage" class="text-red-500 text-sm hidden"></div>
+                        
+                        <div class="flex justify-between">
+                            <button type="button" id="clearButton" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                Clear
+                            </button>
+                            <button type="submit" id="registerButton" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                Register Patient
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div id="successSection" class="bg-green-50 border border-green-200 rounded-lg p-6 text-center hidden">
+                <h3 class="text-lg font-medium text-green-800 mb-2">
+                    Patient Successfully Registered
+                </h3>
+                <div class="bg-white rounded-lg p-4 mb-4 inline-block">
+                    <p class="text-sm text-gray-500">Patient ID</p>
+                    <p id="generatedId" class="text-4xl font-bold"></p>
+                </div>
+                <p class="text-sm">
+                    Please inform the patient to keep this ID for tracking their queue status.
+                </p>
+            </div>
+        </div>
+        
+        <div id="waitingSection" class="hidden">
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-lg font-medium mb-2">Waiting Patients</h2>
+                    <p class="text-gray-600 mb-4">Patients currently waiting to see doctors</p>
+                    
+                    <div id="noWaitingPatients" class="text-center py-6 text-gray-500 hidden">
+                        No patients currently waiting
+                    </div>
+                    
+                    <div id="waitingPatientsTable" class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned Doctor</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Queue Position</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wait Time</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="waitingPatientsBody" class="bg-white divide-y divide-gray-200">
+                                <!-- Waiting patients will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const registerTab = document.getElementById('registerTab');
+            const waitingTab = document.getElementById('waitingTab');
+            const registerSection = document.getElementById('registerSection');
+            const waitingSection = document.getElementById('waitingSection');
+            const registerForm = document.getElementById('registerForm');
+            const clearButton = document.getElementById('clearButton');
+            const errorMessage = document.getElementById('errorMessage');
+            const successSection = document.getElementById('successSection');
+            const generatedId = document.getElementById('generatedId');
+            const logoutButton = document.getElementById('logoutButton');
+            
+            let eventSource = null;
+            
+            // Load doctors
+            loadDoctors();
+            
+            // Tab switching
+            registerTab.addEventListener('click', function() {
+                registerTab.classList.add('border-blue-500', 'text-blue-600');
+                registerTab.classList.remove('border-transparent', 'text-gray-500');
+                waitingTab.classList.add('border-transparent', 'text-gray-500');
+                waitingTab.classList.remove('border-blue-500', 'text-blue-600');
+                
+                registerSection.classList.remove('hidden');
+                waitingSection.classList.add('hidden');
+            });
+            
+            waitingTab.addEventListener('click', function() {
+                waitingTab.classList.add('border-blue-500', 'text-blue-600');
+                waitingTab.classList.remove('border-transparent', 'text-gray-500');
+                registerTab.classList.add('border-transparent', 'text-gray-500');
+                registerTab.classList.remove('border-blue-500', 'text-blue-600');
+                
+                waitingSection.classList.remove('hidden');
+                registerSection.classList.add('hidden');
+                
+                loadWaitingPatients();
+                setupWaitingPatientsSSE();
+            });
+            
+            // Form submission
+            registerForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const patientName = document.getElementById('patientName').value;
+                const patientContact = document.getElementById('patientContact').value;
+                const doctorId = document.getElementById('doctor').value;
+                
+                if (!patientName || !doctorId) {
+                    errorMessage.textContent = 'Please fill in all required fields';
+                    errorMessage.classList.remove('hidden');
+                    return;
+                }
+                
+                // Disable button and show loading state
+                const registerButton = document.getElementById('registerButton');
+                registerButton.disabled = true;
+                registerButton.textContent = 'Registering...';
+                
+                // Send registration request
+                fetch('/api/receptionist/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: patientName,
+                        contact: patientContact,
+                        doctorId: doctorId
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(errorData => {
+                            throw new Error(errorData.error || `Server error: ${response.status}`);
+                        }).catch(e => {
+                            // If response is not JSON, use status text
+                            throw new Error(`Registration failed: ${response.statusText}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Show success message
+                        successSection.classList.remove('hidden');
+                        generatedId.textContent = data.patientId;
+                        
+                        // Clear form
+                        registerForm.reset();
+                        errorMessage.classList.add('hidden');
+                    } else {
+                        errorMessage.textContent = data.error || 'Registration failed';
+                        errorMessage.classList.remove('hidden');
+                    }
+                })
+                .catch(error => {
+                    console.error('Registration error:', error);
+                    errorMessage.textContent = error.message || 'An error occurred';
+                    errorMessage.classList.remove('hidden');
+                    
+                    // If unauthorized or unauthenticated, redirect to login page
+                    if (error.message && (error.message.includes('Unauthorized') || error.message.includes('Please log in'))) {
+                        setTimeout(() => {
+                            alert('Your session has expired. Please log in again.');
+                            window.location.href = '/login';
+                        }, 1000);
+                    }
+                })
+                .finally(() => {
+                    registerButton.disabled = false;
+                    registerButton.textContent = 'Register Patient';
+                });
+            });
+            
+            // Clear button
+            clearButton.addEventListener('click', function() {
+                registerForm.reset();
+                errorMessage.classList.add('hidden');
+                successSection.classList.add('hidden');
+            });
+            
+            // Logout button
+            logoutButton.addEventListener('click', function() {
+                fetch('/logout')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.href = '/';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Logout failed:', error);
+                    });
+            });
+            
+            function loadDoctors() {
+                fetch('/api/receptionist/doctors')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to load doctors');
+                        }
+                        return response.json();
+                    })
+                    .then(doctors => {
+                        const doctorSelect = document.getElementById('doctor');
+                        
+                        // Clear existing options except the first one
+                        while (doctorSelect.options.length > 1) {
+                            doctorSelect.remove(1);
+                        }
+                        
+                        // Add new options
+                        doctors.forEach(doctor => {
+                            const option = document.createElement('option');
+                            option.value = doctor.id;
+                            option.textContent = `${doctor.name} (${doctor.queueLength} patients waiting)`;
+                            doctorSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error loading doctors:', error);
+                    });
+            }
+            
+            function loadWaitingPatients() {
+                fetch('/api/receptionist/waiting-patients')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to load waiting patients');
+                        }
+                        return response.json();
+                    })
+                    .then(patients => {
+                        updateWaitingPatientsTable(patients);
+                    })
+                    .catch(error => {
+                        console.error('Error loading waiting patients:', error);
+                    });
+            }
+            
+            function setupWaitingPatientsSSE() {
+                if (eventSource) {
+                    eventSource.close();
+                }
+                
+                eventSource = new EventSource('/api/receptionist/waiting-patients/events');
+                
+                eventSource.onmessage = function(event) {
+                    const patients = JSON.parse(event.data);
+                    updateWaitingPatientsTable(patients);
+                };
+                
+                eventSource.onerror = function() {
+                    console.error('SSE connection error');
+                    if (eventSource) {
+                        eventSource.close();
+                        eventSource = null;
+                    }
+                };
+            }
+            
+            function updateWaitingPatientsTable(patients) {
+                const tableBody = document.getElementById('waitingPatientsBody');
+                const noWaitingPatients = document.getElementById('noWaitingPatients');
+                const waitingPatientsTable = document.getElementById('waitingPatientsTable');
+                
+                if (patients.length === 0) {
+                    noWaitingPatients.classList.remove('hidden');
+                    waitingPatientsTable.classList.add('hidden');
+                    return;
+                }
+                
+                noWaitingPatients.classList.add('hidden');
+                waitingPatientsTable.classList.remove('hidden');
+                
+                // Clear existing rows
+                tableBody.innerHTML = '';
+                
+                // Add new rows
+                patients.forEach(patient => {
+                    const row = document.createElement('tr');
+                    
+                    // ID
+                    const idCell = document.createElement('td');
+                    idCell.className = 'px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900';
+                    idCell.textContent = patient.id;
+                    row.appendChild(idCell);
+                    
+                    // Name
+                    const nameCell = document.createElement('td');
+                    nameCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+                    nameCell.textContent = patient.name;
+                    row.appendChild(nameCell);
+                    
+                    // Assigned Doctor
+                    const doctorCell = document.createElement('td');
+                    doctorCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+                    doctorCell.textContent = patient.assignedDoctor;
+                    row.appendChild(doctorCell);
+                    
+                    // Queue Position
+                    const positionCell = document.createElement('td');
+                    positionCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+                    positionCell.textContent = patient.queuePosition;
+                    row.appendChild(positionCell);
+                    
+                    // Wait Time
+                    const waitTimeCell = document.createElement('td');
+                    waitTimeCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+                    waitTimeCell.textContent = `${patient.estimatedWaitTime} mins`;
+                    row.appendChild(waitTimeCell);
+                    
+                    // Status
+                    const statusCell = document.createElement('td');
+                    statusCell.className = 'px-6 py-4 whitespace-nowrap text-sm';
+                    
+                    const statusBadge = document.createElement('span');
+                    statusBadge.textContent = patient.status;
+                    
+                    if (patient.status === 'Waiting for Doctor') {
+                        statusBadge.className = 'px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800';
+                    } else if (patient.status === 'In Consultation') {
+                        statusBadge.className = 'px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800';
+                    }
+                    
+                    statusCell.appendChild(statusBadge);
+                    row.appendChild(statusCell);
+                    
+                    tableBody.appendChild(row);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+
